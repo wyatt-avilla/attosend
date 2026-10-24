@@ -8,11 +8,10 @@ fn run(args: &[&str]) -> Output {
 }
 
 #[test]
-fn hello_world() {
+fn subcommand_required() {
     let output = run(&[]);
-    assert!(output.status.success());
-    assert_eq!(output.stdout, b"Hello, world!\n");
-    assert!(output.stderr.is_empty());
+    assert_eq!(output.status.code(), Some(2));
+    assert!(String::from_utf8(output.stderr).unwrap().contains("Usage:"));
 }
 
 #[test]
@@ -25,7 +24,7 @@ fn help() {
         assert!(stdout.contains("--help"));
         assert!(stdout.contains("--version"));
         assert!(!stdout.contains("Hello, world!"));
-        assert!(output.stderr.is_empty());
+        assert_eq!(output.stderr, [] as [u8; 0]);
     }
 }
 
@@ -38,7 +37,7 @@ fn version() {
             output.stdout,
             format!("attosend {}\n", env!("CARGO_PKG_VERSION")).as_bytes()
         );
-        assert!(output.stderr.is_empty());
+        assert_eq!(output.stderr, [] as [u8; 0]);
     }
 }
 
@@ -47,7 +46,23 @@ fn unexpected_arguments() {
     for arg in ["--unknown", "unexpected"] {
         let output = run(&[arg]);
         assert_eq!(output.status.code(), Some(2));
-        assert!(output.stdout.is_empty());
+        assert_eq!(output.stdout, [] as [u8; 0]);
         assert!(String::from_utf8(output.stderr).unwrap().contains("error:"));
     }
+}
+
+#[test]
+fn retry_requires_a_message_id_before_reading_configuration() {
+    let output = run(&[
+        "--config",
+        "/nonexistent/attosend-config.json",
+        "retry",
+        "invalid",
+    ]);
+    assert_eq!(output.status.code(), Some(2));
+    assert!(
+        String::from_utf8(output.stderr)
+            .unwrap()
+            .contains("invalid message ID")
+    );
 }
