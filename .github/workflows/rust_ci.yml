@@ -1,0 +1,44 @@
+name: Rust CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  detect_changes:
+    runs-on: ubuntu-latest
+    outputs:
+      ci_files: ${{ steps.filter.outputs.ci_files }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dorny/paths-filter@v3
+        id: filter
+        if: github.event_name != 'workflow_dispatch'
+        with:
+          filters: |
+            ci_files:
+              - '**/*.rs'
+              - 'Cargo.toml'
+              - 'Cargo.lock'
+              - '**/*.nix'
+              - 'flake.lock'
+              - '.github/workflows/**'
+
+  build:
+    needs: detect_changes
+    if: github.event_name == 'workflow_dispatch' || needs.detect_changes.outputs.ci_files == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: cachix/install-nix-action@v31
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build, format, lint, and test Rust
+        run: nix build

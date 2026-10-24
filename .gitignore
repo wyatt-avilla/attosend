@@ -1,2 +1,13 @@
+# Cargo build output and compiler artifacts
 /target
+/debug
+**/*.rs.bk
+*.pdb
+**/mutants.out*/
+
+# Nix build links
 /result
+/result-*
+
+# Local environment
+.env

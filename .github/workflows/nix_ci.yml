@@ -1,0 +1,51 @@
+name: Nix CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  detect_changes:
+    runs-on: ubuntu-latest
+    outputs:
+      ci_files: ${{ steps.filter.outputs.ci_files }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dorny/paths-filter@v3
+        id: filter
+        if: github.event_name != 'workflow_dispatch'
+        with:
+          filters: |
+            ci_files:
+              - '**/*.nix'
+              - '**/*.rs'
+              - '**/*.yaml'
+              - '**/*.yml'
+              - '**/*.md'
+              - '**/*.markdown'
+              - 'treefmt.toml'
+              - 'flake.lock'
+              - '.github/workflows/**'
+
+  check:
+    needs: detect_changes
+    if: github.event_name == 'workflow_dispatch' || needs.detect_changes.outputs.ci_files == 'true'
+    name: Nix ${{ matrix.check }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        check: [formatting, linting, dead-code]
+    steps:
+      - uses: actions/checkout@v6
+      - uses: cachix/install-nix-action@v31
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Run Nix check
+        run: nix build .#checks.x86_64-linux.${{ matrix.check }}

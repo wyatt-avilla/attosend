@@ -1,0 +1,16 @@
+tree-root-file = "flake.nix"
+excludes = [".git/**", "target/**", "result", "result-*"]
+
+[formatter.nix]
+command = "nixfmt"
+includes = ["*.nix"]
+
+[formatter.prettier]
+command = "prettier"
+options = ["--write"]
+includes = ["*.yaml", "*.yml", "*.md", "*.markdown"]
+
+[formatter.rust]
+command = "rustfmt"
+options = ["--edition", "2024"]
+includes = ["*.rs"]
