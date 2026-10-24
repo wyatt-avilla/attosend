@@ -26,11 +26,15 @@ jobs:
             ci_files:
               - '**/*.nix'
               - '**/*.rs'
+              - 'migrations/**'
+              - 'tests/**'
               - '**/*.yaml'
               - '**/*.yml'
               - '**/*.md'
               - '**/*.markdown'
               - 'treefmt.toml'
+              - 'Cargo.toml'
+              - 'Cargo.lock'
               - 'flake.lock'
               - '.github/workflows/**'
 
@@ -41,11 +45,17 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        check: [formatting, linting, dead-code]
+        check: [formatting, linting, dead-code, nixos-vm]
     steps:
       - uses: actions/checkout@v6
       - uses: cachix/install-nix-action@v31
         with:
           github_access_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Enable KVM for the NixOS test
+        if: matrix.check == 'nixos-vm'
+        run: |
+          sudo chmod 666 /dev/kvm
+          echo 'system-features = nixos-test benchmark big-parallel kvm' | sudo tee -a /etc/nix/nix.conf
+          sudo systemctl restart nix-daemon
       - name: Run Nix check
         run: nix build .#checks.x86_64-linux.${{ matrix.check }}

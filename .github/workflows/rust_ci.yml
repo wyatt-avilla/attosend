@@ -25,6 +25,8 @@ jobs:
           filters: |
             ci_files:
               - '**/*.rs'
+              - 'migrations/**'
+              - 'tests/**'
               - 'Cargo.toml'
               - 'Cargo.lock'
               - '**/*.nix'

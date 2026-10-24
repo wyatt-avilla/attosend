@@ -36,6 +36,12 @@ jobs:
         if: steps.version.outputs.exists == 'false'
         with:
           github_access_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Enable KVM for the NixOS test
+        if: steps.version.outputs.exists == 'false'
+        run: |
+          sudo chmod 666 /dev/kvm
+          echo 'system-features = nixos-test benchmark big-parallel kvm' | sudo tee -a /etc/nix/nix.conf
+          sudo systemctl restart nix-daemon
       - name: Validate release
         if: steps.version.outputs.exists == 'false'
         run: |
