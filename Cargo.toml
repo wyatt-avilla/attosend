@@ -2,7 +2,25 @@
 name = "attosend"
 version = "0.1.0"
 edition = "2024"
-description = "A tiny hello-world CLI"
+description = "Durable local incident notifications through Resend"
 
 [dependencies]
-clap = { version = "4.5.42", features = ["derive"] }
+anyhow = "1"
+axum = "0.8"
+chrono = { version = "0.4", default-features = false, features = ["clock"] }
+clap = { version = "4.5", features = ["derive"] }
+fs2 = "0.4"
+httpdate = "1"
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+thiserror = "2"
+tokio = { version = "1", features = ["rt", "macros", "net", "signal", "sync", "time", "process", "io-util"] }
+tower-http = { version = "0.6", features = ["timeout"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+turso = { version = "=0.8.3", default-features = false }
+uuid = { version = "1", features = ["v4"] }
+
+[dev-dependencies]
+tempfile = "3"
